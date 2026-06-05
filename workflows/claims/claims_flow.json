@@ -1,0 +1,63 @@
+{
+  "name": "Claims Processing Workflow",
+  "version": "1.0",
+  "trigger": "ClaimOpenedEvent",
+  "steps": [
+    {
+      "id": "qualification",
+      "name": "Qualification & Fraud Check",
+      "type": "AUTOMATIC_TASK",
+      "action": "claimsService.qualify",
+      "next": {
+        "condition": "fraudScore > 0.7",
+        "true": "fraud_investigation",
+        "false": "check_threshold"
+      }
+    },
+    {
+      "id": "fraud_investigation",
+      "name": "Manual Fraud Investigation",
+      "type": "USER_TASK",
+      "assigneeRole": "COMPLIANCE_OFFICER",
+      "next": "check_threshold"
+    },
+    {
+      "id": "check_threshold",
+      "name": "Amount Threshold Evaluation",
+      "type": "AUTOMATIC_TASK",
+      "next": {
+        "condition": "claimAmount > 5000",
+        "true": "expert_mission",
+        "false": "direct_payout"
+      }
+    },
+    {
+      "id": "expert_mission",
+      "name": "Assign Expert Mission",
+      "type": "USER_TASK",
+      "assigneeRole": "EXPERT_SURVEYOR",
+      "next": "manager_approval"
+    },
+    {
+      "id": "manager_approval",
+      "name": "Manager Payout Approval",
+      "type": "USER_TASK",
+      "assigneeRole": "CLAIMS_MANAGER",
+      "next": "direct_payout"
+    },
+    {
+      "id": "direct_payout",
+      "name": "Trigger Payment",
+      "type": "AUTOMATIC_TASK",
+      "action": "paymentsService.triggerClaimPayout",
+      "next": "close_claim"
+    },
+    {
+      "id": "close_claim",
+      "name": "Close Claim File",
+      "type": "AUTOMATIC_TASK",
+      "action": "claimsService.close",
+      "next": null
+    }
+  ]
+}

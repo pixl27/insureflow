@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # Database service
+  postgres:
+    image: postgres:15-alpine
+    container_name: insureflow-postgres
+    environment:
+      POSTGRES_USER: insureflow_admin
+      POSTGRES_PASSWORD: insureflow_secure_password
+      POSTGRES_DB: insureflow_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  # Cache & Queue service
+  redis:
+    image: redis:7-alpine
+    container_name: insureflow-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    restart: always
+
+  # Identity and Access Management
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: insureflow-keycloak
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin_secure_password
+    ports:
+      - '8080:8080'
+    restart: always
+
+  # Object Storage (GED MinIO)
+  minio:
+    image: minio/minio:latest
+    container_name: insureflow-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio_admin
+      MINIO_ROOT_PASSWORD: minio_secure_password
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio_data:/data
+    restart: always
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:

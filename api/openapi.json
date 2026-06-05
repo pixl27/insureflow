@@ -1,0 +1,141 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "INSUREFLOW Core API",
+    "description": "API REST pour la plateforme SaaS d'assurance moderne INSUREFLOW. Gère le CRM, les contrats, les sinistres, la facturation et l'assistant IA.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4000",
+      "description": "Passerelle de développement locale"
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "summary": "Authentifier un utilisateur",
+        "description": "Génère un jeton JWT en vérifiant les informations de connexion via Keycloak.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { "type": "string" },
+                  "password": { "type": "string" }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authentification réussie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": { "type": "string" },
+                    "expires_in": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers": {
+      "get": {
+        "summary": "Lister les clients",
+        "description": "Retourne la liste complète des clients (particuliers, entreprises, associations) avec filtres.",
+        "responses": {
+          "200": {
+            "description": "Liste retournée avec succès"
+          }
+        }
+      },
+      "post": {
+        "summary": "Créer un nouveau client",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": { "type": "string", "enum": ["INDIVIDUAL", "COMPANY", "ASSOCIATION"] },
+                  "name": { "type": "string" },
+                  "email": { "type": "string" }
+                },
+                "required": ["type", "name", "email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Client créé avec succès"
+          }
+        }
+      }
+    },
+    "/contracts": {
+      "post": {
+        "summary": "Souscrire un contrat",
+        "description": "Convertit un devis validé en contrat actif.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customerId": { "type": "string" },
+                  "productId": { "type": "string" },
+                  "startDate": { "type": "string", "format": "date" }
+                },
+                "required": ["customerId", "productId", "startDate"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Contrat émis et signé avec succès"
+          }
+        }
+      }
+    },
+    "/claims": {
+      "post": {
+        "summary": "Déclarer un sinistre",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "contractId": { "type": "string" },
+                  "description": { "type": "string" },
+                  "eventDate": { "type": "string", "format": "date" }
+                },
+                "required": ["contractId", "description", "eventDate"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sinistre enregistré et qualifié"
+          }
+        }
+      }
+    }
+  }
+}

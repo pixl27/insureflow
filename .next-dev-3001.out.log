@@ -1,0 +1,86 @@
+
+> @insureflow/frontend@0.1.0 dev
+> next dev --port 3001
+
+   ▲ Next.js 15.5.19
+   - Local:        http://localhost:3001
+   - Network:      http://100.88.184.36:3001
+
+ ✓ Starting...
+ ✓ Ready in 2.9s
+ ○ Compiling /assure ...
+ ✓ Compiled /assure in 3.3s (673 modules)
+ GET /assure 200 in 4068ms
+ GET /assure 200 in 97ms
+ ○ Compiling / ...
+ ✓ Compiled / in 756ms (678 modules)
+ GET / 200 in 547ms
+ GET / 200 in 1252ms
+ ✓ Compiled /assure in 166ms (427 modules)
+ GET /assure 200 in 477ms
+ ○ Compiling /courtier ...
+ ✓ Compiled /backoffice in 1283ms (714 modules)
+ GET /backoffice 200 in 1363ms
+ GET /backoffice 200 in 28ms
+ ✓ Compiled / in 173ms (449 modules)
+ GET / 200 in 160ms
+ GET / 200 in 75ms
+ ✓ Compiled /assure in 193ms (457 modules)
+ GET /assure 200 in 498ms
+ GET /courtier 200 in 97ms
+ GET /backoffice 200 in 156ms
+ GET /courtier 200 in 80ms
+ GET /assure 200 in 74ms
+ GET /assure 200 in 59ms
+ GET /assure 200 in 62ms
+ GET /assure 200 in 60ms
+ GET /assure 200 in 66ms
+ GET /assure 200 in 60ms
+ GET /assure 200 in 58ms
+ GET /courtier 200 in 65ms
+ GET /backoffice 200 in 106ms
+ GET /courtier 200 in 74ms
+ GET /assure 200 in 58ms
+ GET /courtier 200 in 75ms
+ GET /backoffice 200 in 95ms
+ GET /courtier 200 in 67ms
+ GET /assure 200 in 69ms
+ GET /courtier 200 in 73ms
+ GET /assure 200 in 67ms
+ GET /backoffice 200 in 95ms
+ GET /backoffice 200 in 30ms
+ GET / 200 in 399ms
+ GET / 200 in 117ms
+ GET /assure 200 in 178ms
+ GET /assure 200 in 164ms
+ GET /courtier 200 in 216ms
+ GET /courtier 200 in 191ms
+ GET /backoffice 200 in 275ms
+ GET /courtier 200 in 176ms
+ GET /backoffice 200 in 263ms
+ GET /backoffice 200 in 77ms
+ GET / 200 in 239ms
+ GET / 200 in 125ms
+ GET /courtier 200 in 204ms
+ GET /assure 200 in 182ms
+ GET /assure 200 in 84ms
+ GET / 200 in 257ms
+ GET / 200 in 123ms
+ GET /courtier 200 in 193ms
+ GET /backoffice 200 in 317ms
+ GET /backoffice 200 in 84ms
+ GET / 200 in 244ms
+ GET / 200 in 293ms
+ GET / 200 in 134ms
+ GET /courtier 200 in 234ms
+ GET /courtier 200 in 229ms
+ GET /courtier 200 in 73ms
+ GET / 200 in 431ms
+ GET / 200 in 182ms
+ GET /assure 200 in 202ms
+ GET /assure 200 in 68ms
+ GET / 200 in 449ms
+ GET / 200 in 192ms
+ GET /courtier 200 in 255ms
+ GET /backoffice 200 in 392ms
+ GET /backoffice 200 in 87ms

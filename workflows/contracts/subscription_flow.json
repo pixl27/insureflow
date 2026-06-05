@@ -1,0 +1,64 @@
+{
+  "name": "Contract Subscription Workflow",
+  "version": "1.0",
+  "trigger": "QuoteGeneratedEvent",
+  "steps": [
+    {
+      "id": "scoring",
+      "name": "Evaluate Risk Score",
+      "type": "AUTOMATIC_TASK",
+      "action": "pricingService.evaluateRisk",
+      "next": {
+        "condition": "riskScore > 2.0",
+        "true": "broker_manual_review",
+        "false": "signature_request"
+      }
+    },
+    {
+      "id": "broker_manual_review",
+      "name": "Underwriter Manual Review",
+      "type": "USER_TASK",
+      "assigneeRole": "UNDERWRITER",
+      "next": {
+        "condition": "reviewStatus === 'APPROVED'",
+        "true": "signature_request",
+        "false": "reject_subscription"
+      }
+    },
+    {
+      "id": "signature_request",
+      "name": "Electronic Signature Request",
+      "type": "USER_TASK",
+      "assigneeRole": "CUSTOMER",
+      "next": "payment_setup"
+    },
+    {
+      "id": "payment_setup",
+      "name": "Verify Payment SEPA/CB Mandate",
+      "type": "AUTOMATIC_TASK",
+      "action": "paymentsService.verifyMandate",
+      "next": "emit_policy"
+    },
+    {
+      "id": "emit_policy",
+      "name": "Emit Insurance Policy",
+      "type": "AUTOMATIC_TASK",
+      "action": "contractsService.emitPolicy",
+      "next": "billing_start"
+    },
+    {
+      "id": "billing_start",
+      "name": "Start Invoicing & Dunning Loop",
+      "type": "AUTOMATIC_TASK",
+      "action": "billingService.initializeAccount",
+      "next": null
+    },
+    {
+      "id": "reject_subscription",
+      "name": "Reject Subscription File",
+      "type": "AUTOMATIC_TASK",
+      "action": "contractsService.reject",
+      "next": null
+    }
+  ]
+}

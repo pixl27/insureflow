@@ -1,0 +1,71 @@
+{
+  "name": "Billing Collection Workflow",
+  "version": "1.0",
+  "trigger": "InvoiceIssuedEvent",
+  "steps": [
+    {
+      "id": "await_payment",
+      "name": "Await Due Date",
+      "type": "WAIT_TASK",
+      "duration": "14_DAYS",
+      "next": "check_payment"
+    },
+    {
+      "id": "check_payment",
+      "name": "Check Payment Status",
+      "type": "AUTOMATIC_TASK",
+      "action": "billingService.checkInvoice",
+      "next": {
+        "condition": "paymentStatus === 'PAID'",
+        "true": "settle_account",
+        "false": "send_reminder_1"
+      }
+    },
+    {
+      "id": "send_reminder_1",
+      "name": "Send First Friendly Reminder",
+      "type": "AUTOMATIC_TASK",
+      "action": "messagingService.sendEmail",
+      "next": "await_payment_reminder"
+    },
+    {
+      "id": "await_payment_reminder",
+      "name": "Await Payment Grace Period",
+      "type": "WAIT_TASK",
+      "duration": "10_DAYS",
+      "next": "check_payment_final"
+    },
+    {
+      "id": "check_payment_final",
+      "name": "Check Payment Status Final",
+      "type": "AUTOMATIC_TASK",
+      "action": "billingService.checkInvoice",
+      "next": {
+        "condition": "paymentStatus === 'PAID'",
+        "true": "settle_account",
+        "false": "suspend_policy"
+      }
+    },
+    {
+      "id": "suspend_policy",
+      "name": "Suspend Contract Coverage",
+      "type": "AUTOMATIC_TASK",
+      "action": "contractsService.suspendPolicy",
+      "next": "send_dunning_notice"
+    },
+    {
+      "id": "send_dunning_notice",
+      "name": "Send Registered Suspension Notice",
+      "type": "AUTOMATIC_TASK",
+      "action": "messagingService.sendDunningNotice",
+      "next": null
+    },
+    {
+      "id": "settle_account",
+      "name": "Settle Billing Cycle",
+      "type": "AUTOMATIC_TASK",
+      "action": "billingService.completeCycle",
+      "next": null
+    }
+  ]
+}
