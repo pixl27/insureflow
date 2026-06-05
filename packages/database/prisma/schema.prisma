@@ -1,0 +1,428 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum CustomerType {
+  INDIVIDUAL
+  COMPANY
+  ASSOCIATION
+}
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Customer {
+  id           String        @id @default(uuid())
+  type         CustomerType
+  kycStatus    KycStatus     @default(PENDING)
+  score        Float         @default(1.0)
+  contacts     Contact[]
+  addresses    Address[]
+  notes        Note[]
+  tasks        Task[]
+  interactions Interaction[]
+  attachments  Attachment[]
+  contracts    Contract[]
+  claims       Claim[]
+  invoices     Invoice[]
+  payments     Payment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Contact {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  firstName  String
+  lastName   String
+  email      String   @unique
+  phone      String?
+  role       String?
+}
+
+model Address {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  street     String
+  city       String
+  postalCode String
+  country    String
+  isBilling  Boolean  @default(false)
+  isPrimary  Boolean  @default(true)
+}
+
+model Note {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  content    String
+  authorId   String
+  createdAt  DateTime @default(now())
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  status      String   @default("TODO") // TODO, IN_PROGRESS, DONE
+  dueDate     DateTime
+  assigneeId  String
+}
+
+model Interaction {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type       String   // EMAIL, PHONE, MEETING, SYSTEM
+  details    String
+  date       DateTime @default(now())
+}
+
+model Attachment {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  name       String
+  url        String
+  fileType   String
+  size       Int
+  hash       String
+  createdAt  DateTime @default(now())
+}
+
+enum ProductType {
+  AUTO
+  MOTO
+  HABITATION
+  SANTE
+  PREVOYANCE
+  RC_PRO
+  MRP
+  AFFINITAIRE
+  ANIMAUX
+}
+
+model InsuranceProduct {
+  id              String           @id @default(uuid())
+  name            String
+  code            String           @unique
+  type            ProductType
+  status          String           @default("DRAFT") // DRAFT, ACTIVE, ARCHIVED
+  coverages       Coverage[]
+  exclusions      Exclusion[]
+  deductibles     Deductible[]
+  pricingRules    PricingRule[]
+  commissionRules CommissionRule[]
+  taxRules        TaxRule[]
+  versions        ProductVersion[]
+  contracts       Contract[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model Coverage {
+  id          String           @id @default(uuid())
+  productId   String
+  product     InsuranceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name        String
+  code        String
+  description String?
+}
+
+model Exclusion {
+  id          String           @id @default(uuid())
+  productId   String
+  product     InsuranceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  description String
+}
+
+model Deductible {
+  id          String           @id @default(uuid())
+  productId   String
+  product     InsuranceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  amount      Float
+  description String
+}
+
+model PricingRule {
+  id        String           @id @default(uuid())
+  productId String
+  product   InsuranceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  ruleJson  String           // JSON-Rules-Engine format rules
+}
+
+model CommissionRule {
+  id        String           @id @default(uuid())
+  productId String
+  product   InsuranceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  ruleJson  String
+}
+
+model TaxRule {
+  id        String           @id @default(uuid())
+  productId String
+  product   InsuranceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rate      Float
+  type      String
+}
+
+model ProductVersion {
+  id            String           @id @default(uuid())
+  productId     String
+  product       InsuranceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  versionNumber String
+  status        String
+  ruleJson      String
+  activeFrom    DateTime
+  activeTo      DateTime?
+}
+
+enum ContractStatus {
+  DRAFT
+  PENDING_VALIDATION
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+}
+
+model Contract {
+  id            String            @id @default(uuid())
+  customerId    String
+  customer      Customer          @relation(fields: [customerId], references: [id])
+  productId     String
+  product       InsuranceProduct  @relation(fields: [productId], references: [id])
+  brokerId      String
+  policyNumber  String            @unique
+  status        ContractStatus    @default(DRAFT)
+  startDate     DateTime
+  endDate       DateTime?
+  versions      ContractVersion[]
+  events        ContractEvent[]
+  beneficiaries Beneficiary[]
+  guarantees    Guarantee[]
+  premiums      Premium[]
+  claims        Claim[]
+  invoices      Invoice[]
+  commissions   Commission[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+model ContractVersion {
+  id            String   @id @default(uuid())
+  contractId    String
+  contract      Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  versionNumber Int
+  changeReason  String
+  dataJson      String
+  createdAt     DateTime @default(now())
+}
+
+model ContractEvent {
+  id          String   @id @default(uuid())
+  contractId  String
+  contract    Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  eventType   String   // SIGNED, RENEWED, AMENDED, TERMINATED
+  description String
+  timestamp   DateTime @default(now())
+}
+
+model Beneficiary {
+  id              String   @id @default(uuid())
+  contractId      String
+  contract        Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  name            String
+  relationship    String
+  sharePercentage Float
+}
+
+model Guarantee {
+  id          String   @id @default(uuid())
+  contractId  String
+  contract    Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  coverageId  String
+  status      String
+  limit       Float
+  deductible  Float
+}
+
+model Premium {
+  id               String   @id @default(uuid())
+  contractId       String
+  contract         Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  netAmount        Float
+  taxAmount        Float
+  commissionAmount Float
+  grossAmount      Float
+  dueDate          DateTime
+}
+
+enum ClaimStatus {
+  DECLARED
+  QUALIFIED
+  ASSIGNED
+  INSPECTED
+  VALIDATED
+  PAID
+  CLOSED
+}
+
+model Claim {
+  id              String          @id @default(uuid())
+  contractId      String
+  contract        Contract        @relation(fields: [contractId], references: [id])
+  customerId      String
+  customer        Customer        @relation(fields: [customerId], references: [id])
+  claimNumber     String          @unique
+  eventDate       DateTime
+  declarationDate DateTime        @default(now())
+  status          ClaimStatus     @default(DECLARED)
+  description     String
+  fraudScore      Float           @default(0.0)
+  events          ClaimEvent[]
+  reserves        ClaimReserve[]
+  payments        ClaimPayment[]
+  expertMissions  ExpertMission[]
+  documents       ClaimDocument[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model ClaimEvent {
+  id          String   @id @default(uuid())
+  claimId     String
+  claim       Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  eventType   String
+  description String
+  timestamp   DateTime @default(now())
+}
+
+model ClaimReserve {
+  id        String   @id @default(uuid())
+  claimId   String
+  claim     Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  amount    Float
+  type      String   // DAMAGE, FEES, RECOVERY
+  status    String
+  updatedAt DateTime @updatedAt
+}
+
+model ClaimPayment {
+  id          String   @id @default(uuid())
+  claimId     String
+  claim       Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  amount      Float
+  paymentDate DateTime
+  payeeId     String
+  status      String
+}
+
+model ExpertMission {
+  id            String    @id @default(uuid())
+  claimId       String
+  claim         Claim     @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  expertId      String
+  status        String
+  reportUrl     String?
+  scheduledDate DateTime
+  completedDate DateTime?
+}
+
+model ClaimDocument {
+  id       String @id @default(uuid())
+  claimId  String
+  claim    Claim  @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  name     String
+  url      String
+  fileType String
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  contractId    String
+  contract      Contract      @relation(fields: [contractId], references: [id])
+  customerId    String
+  customer      Customer      @relation(fields: [customerId], references: [id])
+  invoiceNumber String        @unique
+  amount        Float
+  status        InvoiceStatus @default(DRAFT)
+  dueDate       DateTime
+  payments      Payment[]
+  taxes         Tax[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Payment {
+  id            String    @id @default(uuid())
+  invoiceId     String
+  invoice       Invoice   @relation(fields: [invoiceId], references: [id])
+  customerId    String
+  customer      Customer  @relation(fields: [customerId], references: [id])
+  amount        Float
+  paymentMethod String    // SEPA, CB, STRIPE, GOCARDLESS
+  reference     String    @unique
+  status        String    // PENDING, SUCCESS, FAILED
+  processedAt   DateTime?
+  createdAt     DateTime  @default(now())
+}
+
+model Transaction {
+  id                String            @id @default(uuid())
+  amount            Float
+  type              String            // DEBIT, CREDIT
+  accountType       String            // TECHNICAL, GENERAL
+  description       String
+  accountingEntries AccountingEntry[]
+  timestamp         DateTime          @default(now())
+}
+
+model AccountingEntry {
+  id            String      @id @default(uuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  debitAccount  String
+  creditAccount String
+  amount        Float
+  date          DateTime    @default(now())
+}
+
+model Commission {
+  id           String   @id @default(uuid())
+  contractId   String
+  contract     Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  brokerId     String
+  amount       Float
+  rate         Float
+  status       String   // CALCULATED, PAID
+  calculatedAt DateTime @default(now())
+}
+
+model Tax {
+  id        String  @id @default(uuid())
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  type      String
+  amount    Float
+  rate      Float
+}
